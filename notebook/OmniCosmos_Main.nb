@@ -1,0 +1,198 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 14.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[      7063,        190]
+NotebookOptionsPosition[      6235,        166]
+NotebookOutlinePosition[      6641,        183]
+CellTagsIndexPosition[      6598,        180]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"SetDirectory", "[", 
+   RowBox[{"NotebookDirectory", "[", "]"}], "]"}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"Get", "[", "\"\<OmniCosmos.wl\>\"", "]"}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"Print", "[", "\"\<Omni-Cosmos caricato con successo!\>\"", "]"}], 
+  ";"}]}], "Input",
+ Editable->True,
+ InitializationCell->True,
+ CellChangeTimes->{{3.985350520644209*^9, 3.9853505206442623`*^9}, 
+   3.9853505534569597`*^9, {3.98535135111731*^9, 3.9853513536922894`*^9}},
+ CellLabel->"In[21]:=",ExpressionUUID->"c5f2fed5-02ad-43a1-a8be-70f3e58c4658"],
+
+Cell[BoxData["\<\"Omni-Cosmos caricato con successo!\"\>"], "Print",
+ CellChangeTimes->{3.985401265236805*^9, 3.985401398606236*^9, 
+  3.985401601337854*^9, 3.985401815377759*^9, 3.9854145065698357`*^9, 
+  3.985415414037274*^9},
+ CellLabel->
+  "During evaluation of \
+In[21]:=",ExpressionUUID->"c9ff7ce4-99cf-4022-8451-a58155ed5730"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"LaunchOmniCosmos", "[", "]"}]], "Input",
+ CellChangeTimes->{{3.985401249397965*^9, 3.9854012493980103`*^9}, {
+  3.985415132591316*^9, 3.985415135753274*^9}},
+ CellLabel->"In[24]:=",ExpressionUUID->"39f7c8cb-aa7b-48ff-a17d-6bc374bc71ae"],
+
+Cell[BoxData[
+ DynamicModuleBox[{OmniCosmos`Private`exercise$$ = <|
+  "level" -> 1, "type" -> "text", "question" -> 
+   "Qual \[EGrave] il pianeta pi\[UGrave] grande?", "answer" -> "giove", 
+   "hint" -> "\[CapitalEGrave] il quinto pianeta"|>, 
+  OmniCosmos`Private`userAnswer$$ = "terra", OmniCosmos`Private`feedback$$ = 
+  "\:274c Sbagliato \[RightArrow] \[CapitalEGrave] il quinto pianeta", 
+  OmniCosmos`Private`level$$ = 1, OmniCosmos`Private`score$$ = 0}, 
+  PanelBox[
+   TagBox[GridBox[{
+      {
+       StyleBox["\<\"\|01f30c Modulo Accademia\"\>",
+        StripOnInput->False,
+        FontSize->20,
+        FontWeight->Bold]},
+      {
+       TemplateBox[{"\"Score: \"", 
+         DynamicBox[
+          ToBoxes[OmniCosmos`Private`score$$, StandardForm]]},
+        "RowDefault"]},
+      {
+       InterpretationBox[
+        StyleBox[GridBox[{
+           {
+            
+            SetterBox[Dynamic[OmniCosmos`Private`level$$], {
+             1}, "\<\"Facile\"\>"], 
+            
+            SetterBox[Dynamic[OmniCosmos`Private`level$$], {
+             3}, "\<\"Difficile\"\>"]}
+          },
+          BaselinePosition->{1, 1},
+          GridBoxSpacings->{"Columns" -> {
+              Offset[0.27999999999999997`], {
+               Offset[0.]}, 
+              Offset[0.27999999999999997`]}, "Rows" -> {
+              Offset[0.2], {
+               Offset[0.4]}, 
+              Offset[0.2]}}],
+         Deployed->True],
+        SetterBar[
+         Dynamic[OmniCosmos`Private`level$$], {
+         1 -> "Facile", 3 -> "Difficile"}]]},
+      {
+       ButtonBox["\<\"Nuova domanda\"\>",
+        Appearance->Automatic,
+        ButtonFunction:>(
+         OmniCosmos`Private`exercise$$ = 
+          OmniCosmos`Private`getExercise[OmniCosmos`Private`level$$]; 
+         OmniCosmos`Private`userAnswer$$ = ""; 
+         OmniCosmos`Private`feedback$$ = ""; Null),
+        Evaluator->Automatic,
+        Method->"Preemptive"]},
+      {
+       DynamicBox[ToBoxes[
+         Column[{
+           Style[
+            OmniCosmos`Private`exercise$$["question"], 14], 
+           If[
+            KeyExistsQ[OmniCosmos`Private`exercise$$, "data"], 
+            Grid[
+             Partition[
+              Flatten[
+               ReplaceAll[
+                OmniCosmos`Private`exercise$$[
+                "data"], (Pattern[OmniCosmos`Private`a, 
+                   Blank[]] -> Pattern[OmniCosmos`Private`b, 
+                   Blank[]]) :> {
+                 OmniCosmos`Private`a, "=", OmniCosmos`Private`b}]], 3]], 
+            Nothing]}], StandardForm],
+        ImageSizeCache->{206.015625, {5.970703125, 10.623046875}}]},
+      {
+       InputFieldBox[Dynamic[OmniCosmos`Private`userAnswer$$], String]},
+      {
+       ButtonBox["\<\"Verifica\"\>",
+        Appearance->Automatic,
+        ButtonFunction:>
+         Module[{OmniCosmos`Private`result$ = 
+           OmniCosmos`Private`checkAnswer[
+            OmniCosmos`Private`exercise$$, OmniCosmos`Private`userAnswer$$]}, 
+          OmniCosmos`Private`feedback$$ = 
+           Which[OmniCosmos`Private`result$ === True, 
+             Increment[OmniCosmos`Private`score$$]; "\:2705 Corretto!", 
+             OmniCosmos`Private`result$ === "perfect", 
+             Increment[OmniCosmos`Private`score$$]; "\:2705 Perfetto!", 
+             OmniCosmos`Private`result$ === "close", 
+             "\:26a0\:fe0f Vicino! Controlla le unit\[AGrave].", True, 
+             "\:274c Sbagliato \[RightArrow] " <> 
+             OmniCosmos`Private`exercise$$["hint"]]; Null],
+        Evaluator->Automatic,
+        Method->"Preemptive"]},
+      {
+       DynamicBox[ToBoxes[
+         Style[OmniCosmos`Private`feedback$$, 14], StandardForm],
+        ImageSizeCache->{236.0859375, {3.36328125, 13.23046875}}]}
+     },
+     DefaultBaseStyle->"Column",
+     GridBoxAlignment->{"Columns" -> {{Left}}},
+     GridBoxItemSize->{"Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}],
+    "Column"]],
+  DynamicModuleValues:>{}]], "Output",
+ CellChangeTimes->{
+  3.985401265411539*^9, 3.985401398944309*^9, {3.985401589971054*^9, 
+   3.985401603972165*^9}, {3.985401804095591*^9, 3.985401817595571*^9}, {
+   3.985414490447589*^9, 3.985414513046815*^9}, 3.985415414114482*^9},
+ CellLabel->"Out[24]=",ExpressionUUID->"50468835-688e-40aa-b0a6-96919a4f2424"]
+}, Open  ]],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.9854024116620626`*^9, 3.985402432373735*^9}},
+ CellLabel->"In[25]:=",ExpressionUUID->"be5324bd-7ee1-4337-88d2-d6be1681e460"]
+},
+Editable->True,
+WindowSize->{1387.5, 762},
+WindowMargins->{{0, Automatic}, {Automatic, 0}},
+FrontEndVersion->"14.3 for Linux x86 (64-bit) (July 8, 2025)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"668d2679-f2bd-46c2-9e02-2919115d095b"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[576, 22, 573, 13, 87, "Input",ExpressionUUID->"c5f2fed5-02ad-43a1-a8be-70f3e58c4658",
+ InitializationCell->True],
+Cell[1152, 37, 333, 6, 23, "Print",ExpressionUUID->"c9ff7ce4-99cf-4022-8451-a58155ed5730"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[1522, 48, 260, 4, 29, "Input",ExpressionUUID->"39f7c8cb-aa7b-48ff-a17d-6bc374bc71ae"],
+Cell[1785, 54, 4258, 105, 213, "Output",ExpressionUUID->"50468835-688e-40aa-b0a6-96919a4f2424"]
+}, Open  ]],
+Cell[6058, 162, 173, 2, 29, "Input",ExpressionUUID->"be5324bd-7ee1-4337-88d2-d6be1681e460"]
+}
+]
+*)
+
