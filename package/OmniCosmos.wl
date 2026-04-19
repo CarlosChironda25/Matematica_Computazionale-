@@ -1,9 +1,6 @@
-(* ::Package:: *)
-
 BeginPackage["OmniCosmos`"]
 
 LaunchOmniCosmos::usage = "Avvia il modulo Accademia con risposta libera.";
-
 
 Begin["`Private`"]
 
@@ -14,96 +11,121 @@ Begin["`Private`"]
 G = 6.674*10^-11;
 
 (* ===================== *)
-(* DATABASE ESERCIZI *)
+(* DATABASE *)
 (* ===================== *)
 
-exerciseDB = {
+packageDir = DirectoryName[$InputFileName];
 
-  <|"level" -> 1,
-    "type" -> "text",
-    "question" -> "Qual è il pianeta più grande?",
-    "answer" -> "giove",
-    "hint" -> "È il quinto pianeta"|>,
+dataPath = FileNameJoin[
+  {ParentDirectory[packageDir], "Data", "Database.wl"}
+];
 
-  <|"level" -> 1,
-    "type" -> "text",
-    "question" -> "Qual è il pianeta più vicino al Sole?",
-    "answer" -> "mercurio",
-    "hint" -> "È il primo pianeta"|>
+exerciseDB = Import[dataPath, "WL"];
 
-}
+(* sicurezza import *)
+If[exerciseDB === $Failed || !ListQ[exerciseDB],
+  exerciseDB = {};
+];
+
+Echo[Length[exerciseDB], "Esercizi caricati:"];
+
 (* ===================== *)
-(* GENERATORE DINAMICO *)
+(* GENERATORE FISICA *)
 (* ===================== *)
 
 generatePhysicsExercise[] := Module[{m1, m2, r},
 
   m1 = RandomReal[{10^23, 10^25}];
   m2 = RandomReal[{10^29, 10^31}];
-  r = RandomReal[{10^10, 10^12}];
+  r  = RandomReal[{10^10, 10^12}];
 
-  <|"level" -> 3,
+  <|
+    "level" -> 3,
     "type" -> "numeric",
     "question" -> "Calcola la forza gravitazionale (Newton)",
-    "data" -> {"m1" -> m1, "m2" -> m2, "r" -> r},
+    "data" -> <|"m1" -> m1, "m2" -> m2, "r" -> r|>,
     "answer" -> G*m1*m2/r^2,
-    "hint" -> "Usa F = G m1 m2 / r^2"|>
+    "hint" -> "F = G m1 m2 / r^2"
+  |>
 ];
 
 (* ===================== *)
-(* FILTRAGGIO (Cases) *)
+(* GET EXERCISE *)
 (* ===================== *)
 
-(*scegliere la domanda rispetto al livelo*)
 getExercise[level_] := Module[{filtered},
 
-  filtered = Cases[exerciseDB, x_ /; x["level"] == level];
+  If[level === 3,
+    Return[generatePhysicsExercise[]]
+  ];
 
-  If[level == 3,
-    generatePhysicsExercise[],
-    RandomChoice[filtered]
-  ]
+  filtered = Select[exerciseDB, #["level"] == level &];
+
+  If[filtered === {} || filtered === $Failed,
+    Return[<|
+      "level" -> level,
+      "type" -> "text",
+      "question" -> "Nessun esercizio disponibile",
+      "answer" -> "",
+      "hint" -> "Controlla il database"
+    |>]
+  ];
+
+  RandomChoice[filtered]
 ];
- 
+
 (* ===================== *)
-(* VALIDAZIONE *)
+(* VALIDAZIONE ROBUSTA *)
 (* ===================== *)
 
 checkAnswer[exercise_, user_] := Module[
-  {cleanedUser, numericUser, diff},
+  {cleanedUser, numericUser, diff, ans},
 
   cleanedUser = ToLowerCase@StringTrim[user];
 
   Which[
+    
+    exercise["type"] === "text",
+    cleanedUser === ToLowerCase@exercise["answer"],
 
-   (* Risposta testuale *)
-   exercise["type"] == "text",
-   cleanedUser === exercise["answer"],
+    exercise["type"] === "numeric",
 
-   (* Risposta numerica *)
-   exercise["type"] == "numeric" && MatchQ[ToExpression[user], _?NumericQ],
+    numericUser = Quiet@Check[Interpreter["Number"][user], $Failed];
+    If[numericUser === $Failed, Return["wrong"]];
 
-   numericUser = ToExpression[user];
-   diff = Abs[numericUser - exercise["answer"]];
+    ans = exercise["answer"];
 
-   Which[
-    diff < 10^10, "perfect",
-    diff < 10^20, "close",
-    True, "wrong"
-   ],
+    diff = If[
+      ans == 0,
+      Abs[numericUser - ans],
+      Abs[numericUser - ans]/Abs[ans]
+    ];
 
-   True, False
+    Which[
+      diff < 10^-3, "perfect",
+      diff < 10^-1, "close",
+      True, "wrong"
+    ],
+
+    True,
+    "wrong"
   ]
 ];
 
 (* ===================== *)
-(* INTERFACCIA *)
+(* UI PRINCIPALE *)
 (* ===================== *)
 
 LaunchOmniCosmos[] := DynamicModule[
-  {exercise, userAnswer = "", feedback = "", level = 1, score = 0},
+  {
+    userAnswer = "",
+    feedback = "",
+    level = 1,
+    score = 0,
+    currentExercise
+  },
 
-  exercise = getExercise[level];
+  currentExercise := getExercise[level];
 
   Panel[
    Column[{
@@ -112,58 +134,49 @@ LaunchOmniCosmos[] := DynamicModule[
 
      Row[{"Score: ", Dynamic[score]}],
 
-     SetterBar[Dynamic[level], {
-       1 -> "Facile",
-       3 -> "Difficile"
-     }],
+     SetterBar[
+      Dynamic[level],
+      {1 -> "Facile", 3 -> "Difficile"}
+     ],
 
      Button["Nuova domanda",
-      exercise = getExercise[level];
       userAnswer = "";
       feedback = "";
+      currentExercise = getExercise[level];
      ],
 
      Dynamic[
-      Column[{
+      Module[{ex = currentExercise},
 
-        Style[exercise["question"], 14],
+       Column[{
 
-        (* Visualizzazione dati con ReplaceAll + Rule + Flatten *)
-        If[KeyExistsQ[exercise, "data"],
-         Grid[
-          Partition[
-           Flatten[
-            exercise["data"] /. Rule[a_, b_] :> {a, "=", b}
-           ], 3
-          ]
-         ],
-         Nothing
-        ]
+         Style[ex["question"], 14],
 
-      }]
+         If[AssociationQ[ex] && KeyExistsQ[ex, "data"],
+          Grid[KeyValueMap[{#1, "=", #2} &, ex["data"]]],
+          Nothing
+         ]
+
+       }]
+      ]
      ],
 
-     (* Input libero *)
      InputField[Dynamic[userAnswer], String],
 
      Button["Verifica",
-      Module[{result = checkAnswer[exercise, userAnswer]},
+      Module[{result = checkAnswer[currentExercise, userAnswer]},
 
        feedback = Which[
-
-         result === True,
+         
+         result === True || result === "perfect",
          score++;
          "✅ Corretto!",
-
-         result === "perfect",
-         score++;
-         "✅ Perfetto!",
 
          result === "close",
          "⚠️ Vicino! Controlla le unità.",
 
          True,
-         "❌ Sbagliato → " <> exercise["hint"]
+         "❌ Sbagliato → " <> currentExercise["hint"]
        ];
       ]
      ],
