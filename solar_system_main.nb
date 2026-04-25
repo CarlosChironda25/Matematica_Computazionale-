@@ -1,0 +1,53 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 14.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[      1307,         45]
+NotebookOptionsPosition[       905,         30]
+NotebookOutlinePosition[      1353,         47]
+CellTagsIndexPosition[      1310,         44]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"SetDirectory", "[", 
+   RowBox[{"NotebookDirectory", "[", "]"}], "]"}], ";", " ", 
+  RowBox[{"<<", "  ", "SolarApp`"}], ";", " ", 
+  RowBox[{"StartSolarSystem", "[", "]"}]}]], "Input",
+ CellChangeTimes->{{3.9860209979692574`*^9, 
+  3.986021048510788*^9}},ExpressionUUID->"385537bd-419b-3e42-a2da-\
+a3f21803f7c0"]
+},
+WindowSize->{574.8, 645.6},
+WindowMargins->{{Automatic, 30}, {Automatic, 178.79999999999998`}},
+Magnification:>0.9 Inherited,
+FrontEndVersion->"14.3 for Microsoft Windows (64-bit) (July 8, 2025)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"b3ab1f6f-32a9-e541-ab60-3772403b3b25"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[554, 20, 347, 8, 25, "Input",ExpressionUUID->"385537bd-419b-3e42-a2da-a3f21803f7c0"]
+}
+]
+*)
+
