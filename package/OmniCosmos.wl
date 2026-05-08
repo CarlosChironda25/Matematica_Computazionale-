@@ -4,14 +4,10 @@ LaunchOmniCosmos::usage = "Avvia il modulo Accademia con risposta libera.";
 
 Begin["`Private`"]
 
-(* ===================== *)
-(* COSTANTE *)
-(* ===================== *)
 
-G = 6.674*10^-11;
 
 (* ===================== *)
-(* DATABASE *)
+(* caricamento database *)
 (* ===================== *)
 
 packageDir = DirectoryName[$InputFileName];
@@ -22,17 +18,36 @@ dataPath = FileNameJoin[
 
 exerciseDB = Import[dataPath, "WL"];
 
-(* sicurezza import *)
 If[exerciseDB === $Failed || !ListQ[exerciseDB],
   exerciseDB = {};
+];
+
+normalizeText[str_] := Module[{s = str},
+  s = ToLowerCase@StringTrim[str];
+  s = StringReplace[s, {
+    "à"->"a","á"->"a","â"->"a",
+    "è"->"e","é"->"e","ê"->"e",
+    "ì"->"i","í"->"i","î"->"i",
+    "ò"->"o","ó"->"o","ô"->"o",
+    "ù"->"u","ú"->"u","û"->"u"
+  }];
+  s
+];
+
+exerciseDB = Map[
+  If[AssociationQ[#] && KeyExistsQ[#, "answer"] && StringQ[#["answer"]] && #["type"] === "text",
+    Append[#, "answer" -> normalizeText[#["answer"]]],
+    #
+  ] &,
+  exerciseDB
 ];
 
 Echo[Length[exerciseDB], "Esercizi caricati:"];
 
 (* ===================== *)
-(* GENERATORE FISICA *)
+(* PHYSICS GENERATOR *)
 (* ===================== *)
-
+G = 6.674*10^-11;
 generatePhysicsExercise[] := Module[{m1, m2, r},
 
   m1 = RandomReal[{10^23, 10^25}];
@@ -43,9 +58,9 @@ generatePhysicsExercise[] := Module[{m1, m2, r},
     "level" -> 3,
     "type" -> "numeric",
     "question" -> "Calcola la forza gravitazionale (Newton)",
-    "data" -> <|"m1" -> m1, "m2" -> m2, "r" -> r|>,
+    "data" -> <|"m1"->m1,"m2"->m2,"r"->r|>,
     "answer" -> G*m1*m2/r^2,
-    "hint" -> "F = G m1 m2 / r^2"
+    "hint" -> "F = G*m1*m2/r^2"
   |>
 ];
 
@@ -67,7 +82,7 @@ getExercise[level_] := Module[{filtered},
       "type" -> "text",
       "question" -> "Nessun esercizio disponibile",
       "answer" -> "",
-      "hint" -> "Controlla il database"
+      "hint" -> ""
     |>]
   ];
 
@@ -75,18 +90,16 @@ getExercise[level_] := Module[{filtered},
 ];
 
 (* ===================== *)
-(* VALIDAZIONE ROBUSTA *)
+(* CHECK ANSWER *)
 (* ===================== *)
 
 checkAnswer[exercise_, user_] := Module[
-  {cleanedUser, numericUser, diff, ans},
-
-  cleanedUser = ToLowerCase@StringTrim[user];
+  {numericUser, diff, ans},
 
   Which[
-    
+
     exercise["type"] === "text",
-    cleanedUser === ToLowerCase@exercise["answer"],
+    normalizeText[user] === exercise["answer"],
 
     exercise["type"] === "numeric",
 
@@ -94,12 +107,7 @@ checkAnswer[exercise_, user_] := Module[
     If[numericUser === $Failed, Return["wrong"]];
 
     ans = exercise["answer"];
-
-    diff = If[
-      ans == 0,
-      Abs[numericUser - ans],
-      Abs[numericUser - ans]/Abs[ans]
-    ];
+    diff = Abs[numericUser - ans]/Max[Abs[ans], 10^-30];
 
     Which[
       diff < 10^-3, "perfect",
@@ -113,79 +121,139 @@ checkAnswer[exercise_, user_] := Module[
 ];
 
 (* ===================== *)
-(* UI PRINCIPALE *)
+(* HINT SYSTEM (CYCLIC) *)
+(* ===================== *)
+
+getHints[ex_] := Module[{},
+  Which[
+    KeyExistsQ[ex, "hints"] && ListQ[ex["hints"]],
+    ex["hints"],
+
+    KeyExistsQ[ex, "hint"] && StringQ[ex["hint"]],
+    {ex["hint"]},
+
+    True,
+    {}
+  ]
+];
+
+(* ===================== *)
+(* LAUNCH UI *)
 (* ===================== *)
 
 LaunchOmniCosmos[] := DynamicModule[
-  {
-    userAnswer = "",
-    feedback = "",
-    level = 1,
-    score = 0,
-    currentExercise
-  },
+ {
+  userAnswer = "",
+  feedback = "",
+  level = 1,
+  score = 0,
+  currentExercise = getExercise[1],
+  alreadyAnswered = False,
+  showAnswer = False,
 
-  currentExercise := getExercise[level];
+  hintIndex = 0
+ },
 
-  Panel[
-   Column[{
+ Panel[
+  Column[{
 
-     Style["🌌 Modulo Accademia", 20, Bold],
+    Style["🌌 Esercitazioni", 20, Bold],
 
-     Row[{"Score: ", Dynamic[score]}],
+    Row[{"Score: ", Dynamic[score]}],
 
-     SetterBar[
-      Dynamic[level],
-      {1 -> "Facile", 3 -> "Difficile"}
+    SetterBar[
+     Dynamic[level,
+      (level = #;
+       currentExercise = getExercise[level];
+       userAnswer = "";
+       feedback = "";
+       alreadyAnswered = False;
+       showAnswer = False;
+       hintIndex = 0;
+      ) &
      ],
+     {1->"Facile",3->"Difficile"}
+    ],
 
-     Button["Nuova domanda",
-      userAnswer = "";
-      feedback = "";
-      currentExercise = getExercise[level];
-     ],
+    Button["Nuova domanda",
+     currentExercise = getExercise[level];
+     userAnswer = "";
+     feedback = "";
+     alreadyAnswered = False;
+     showAnswer = False;
+     hintIndex = 0;
+    ],
 
-     Dynamic[
-      Module[{ex = currentExercise},
+    Dynamic[
+     Column[{Style[currentExercise["question"],14]}]
+    ],
 
-       Column[{
+    InputField[
+      Dynamic[userAnswer],
+      String,
+      Enabled -> (!showAnswer && !alreadyAnswered)
+    ],
 
-         Style[ex["question"], 14],
+    (* ===================== *)
+    (* HINT BUTTON CYCLIC *)
+    (* ===================== *)
 
-         If[AssociationQ[ex] && KeyExistsQ[ex, "data"],
-          Grid[KeyValueMap[{#1, "=", #2} &, ex["data"]]],
-          Nothing
-         ]
-
-       }]
+    Button["💡 Aiuto",
+      Module[{hints = getHints[currentExercise], n},
+        n = Length[hints];
+        If[n > 0,
+          hintIndex = Mod[hintIndex, n] + 1;
+          feedback = hints[[hintIndex]]
+        ]
       ]
-     ],
+    ],
 
-     InputField[Dynamic[userAnswer], String],
+    (* ===================== *)
+    (* VERIFY *)
+    (* ===================== *)
 
-     Button["Verifica",
-      Module[{result = checkAnswer[currentExercise, userAnswer]},
+    Button["Verifica",
+     Module[{result = checkAnswer[currentExercise, userAnswer]},
+
+       If[(result === True || result === "perfect") && !alreadyAnswered,
+        score++;
+        alreadyAnswered = True;
+       ];
 
        feedback = Which[
-         
          result === True || result === "perfect",
-         score++;
          "✅ Corretto!",
 
          result === "close",
-         "⚠️ Vicino! Controlla le unità.",
+         "⚠️ Vicino!",
 
          True,
-         "❌ Sbagliato → " <> currentExercise["hint"]
+         "❌ Errato"
        ];
-      ]
-     ],
+     ]
+    ],
 
-     Dynamic[Style[feedback, 14]]
+    Button["Risposta", showAnswer = True;],
 
-   }]
-  ]
-];
+    Dynamic[Style[feedback,14]],
+
+    Dynamic[
+     If[showAnswer,
+      Style[
+        "Risposta: " <>
+        If[currentExercise["type"]==="numeric",
+          ToString@NumberForm[currentExercise["answer"],4],
+          currentExercise["answer"]
+        ],
+        14, Blue
+      ],
+      ""
+     ]
+    ]
+
+  }]
+ ]
+]
 
 End[]
 
