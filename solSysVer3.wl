@@ -3,7 +3,6 @@
 distances = {.29, .38, .56, .85, 1.3, 1.8, 2.2, 2.8};
 distances = {.29, .38, .56, .85, 1.3, 1.8, 2.2, 2.8};
 planetdistances = {.0165, .025, .041, .029, .075, .043, .033, .026};
-planetNames = {"Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"};
 planetColors = {LightGray, Orange, Blue, Red, Brown, LightOrange, LightBlue, Darker[Cyan, 0.5]};
 
 planetInfo = {
