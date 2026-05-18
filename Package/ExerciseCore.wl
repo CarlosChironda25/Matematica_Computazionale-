@@ -1,6 +1,6 @@
 (* ::Package:: *)
 
-BeginPackage["OmniCosmos`"]
+BeginPackage["ExerciseCore`"]
 
 (* ========================================================================= *)
 (* 1. DICHIARAZIONE DELLE FUNZIONI PUBBLICHE (USAGE)                         *)
